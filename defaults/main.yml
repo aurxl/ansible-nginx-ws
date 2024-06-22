@@ -1,0 +1,9 @@
+nginx_wp:
+  cert_dir: /etc/ssl/certs
+
+  sites:
+    default:
+      locations:
+        - name: /
+          content: |
+            try_files $uri $uri/

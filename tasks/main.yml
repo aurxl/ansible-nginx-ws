@@ -1,0 +1,28 @@
+---
+- name: Combine defaults with vars
+  ansible.builtin.set_fact:
+    nginx_wp: "{{ default_nginx_wp | ansible.builtin.combine(nginx_wp, recursive=true) }}"
+
+- name: Add nginx to pkgs
+  ansible.builtin.set_fact:
+    pkgs: "{{ pkgs + ['nginx'] }}"
+
+- name: Add mod_ssl to pkgs
+  ansible.builtin.set_fact:
+    pkgs: "{{ pkgs + ['mod_ssl'] }}"
+
+- name: RHEL - Extra software
+  ansible.builtin.include_tasks: extra-software/rhel-extra-software.yml
+  when: ansible_facts["os_family"] == "RedHat"
+
+- name: include certs
+  ansible.builtin.include_tasks: certs.yml
+  loop: "{{ sites | dict2items }}"
+  loop_control:
+    loop_var: site
+
+- name: include nginx
+  ansible.builtin.include_tasks: nginx.yml
+  loop: "{{ sites | dict2items }}"
+  loop_control:
+    loop_var: site

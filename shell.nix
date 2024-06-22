@@ -4,5 +4,6 @@
       ansible
       ansible-lint
       yamllint
+      python311
     ];
 }
