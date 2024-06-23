@@ -2,11 +2,11 @@
 - name: "Check if {{site.key}} certs already present"
   become: true
   ansible.builtin.stat:
-    path: "{{ nginx_wp.cert_dir }}/{{site.key}}"
+    path: "{{ nginx_ws.cert_dir }}/{{site.key}}/privkey.pem"
   register: site_cert_dir
 
 - name: "Create self_signed certs"
   become: true
-  ansible.builtin.command: "openssl req -x509 -nodes -days 1 -newkey rsa:2048 -keyout {{ cert_dir }}/{{ site }}/privkey.pem -out {{ cert_dir }}/{{ site }}/fullchain.pem -subj '/C=XX/ST=XX/L=XX/O=XX/OU=XX/CN={{ site }}'"
+  ansible.builtin.command: "openssl req -x509 -nodes -days 1 -newkey rsa:2048 -keyout {{ nginx_ws.cert_dir }}/{{ site }}/privkey.pem -out {{ nginx_ws.cert_dir }}/{{ site }}/fullchain.pem -subj '/C=XX/ST=XX/L=XX/O=XX/OU=XX/CN={{ site }}'"
   notify: reload nginx
   when: not site_cert_dir.stat.exists

@@ -1,0 +1,81 @@
+{# setup namespace default_location to avoid duplicate lines #}
+{% set default_location = namespace(needed=False) %}
+
+# Settings for a TLS enabled server.
+server {
+    listen       80;
+    listen       [::]:80;
+    server_name  {{ site.key }} {{ ( site.value.alternative_names | selectattr('redirect_to_main', 'undefined') | map(attribute='name') ) | join(' ') }} {{ ( site.value.alternative_names | selectattr('redirect_to_main', 'undefined') | rejectattr('redirect_to_main', 'true') | map(attribute='name') ) | join(' ') }};
+
+    access_log /var/log/nginx/access.{{ site.key }}.log;
+    error_log /var/log/nginx/error.{{ site.key }}.log;
+
+    root /var/www/{{ site.key }}/html;
+    index index.html index.htm;
+
+    error_page 404 /404.html;
+        location = /40x.html {
+    }
+
+    error_page 500 502 503 504 /50x.html;
+        location = /50x.html {
+    }
+
+    {% if site.value.redirect_in_server is defined and site.value.redirect_in_server %}
+    
+    return {{ site.value.redirect_in_server.code | default('307') }} {{ site.value.redirect_in_server.to }}{{ '$request_uri' if site.value.redirect_in_server.rewrite | default('false') }};
+    {% endif %}
+
+    {% if site.value.location is defined %}
+    {% for location in site.value.locations %}
+    {% if location.name == '/' and location.redirect is undefined and location.content is undefined %}
+
+    {% set default_location.needed = true %}
+
+    {% else %}
+
+    location {{ location.modifier | default('') }} {{ location.name}}{{ '(.*)' if location.name == '/' and location.redirect.rewrite | default(false) }} {
+        {{ location.content | default('') }}
+        {% if location.redirect is defined %}return {{ location.redirect.code | default('307') }} {{ location.redirect.to }}{{ '$1$is_args$args' if location.name != '/' and location.rewrite | default(false) }}{{ '$request_uri' if location.name == '/' and location.rewrite | default(false) }};{% endif %}  
+
+    }
+
+    {% endif %}
+    {% endfor %}
+    {% else %}
+    
+    {% set default_location.needed = true %}
+    
+    {% endif %}
+
+    {% if default_location.needed %}
+    
+    location / {
+        try_files $uri $uri/ =404;
+    }
+    {% endif %}
+
+    location ~ /\.ht {
+        deny all;
+    }
+}
+
+{% if site.value.alternative_names %}
+{% for altname in site.value.alternative_names %}
+{% if altname.redirect_to_main is defined and altname.redirect_to_main %}
+server {
+    listen 80;
+    listen [::]:80;
+
+    server_name {{ altname.name }};
+
+    access_log /var/log/nginx/access.{{ site.key }}.log;
+    error_log /var/log/nginx/error.{{ site.key }}.log;
+
+    return {{ altname.code | default('307') }} http://{{ site.key }}$request_uri;
+
+}
+
+{% endif %}
+{% endfor %}
+{% endif %}

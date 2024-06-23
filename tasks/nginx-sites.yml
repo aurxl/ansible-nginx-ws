@@ -1,0 +1,32 @@
+---
+- name: Deploy site html content 
+  become: true
+  ansible.builtin.copy:
+    src: "{{ site.value.deploy_html_content.local_src }}"
+    dest: "/var/www/"
+    owner: nginx
+    group: nginx
+    mode: u=rwx,g=rwx,o=r
+  when: site.value.deploy_html_content is defined and site.value.deploy_html_content.enabled
+
+- name: Template nginx http site
+  become: true
+  ansible.builtin.template:
+    src: "site.conf.j2"
+    dest: "/etc/nginx/sites-enabled/{{ site.key }}"
+    owner: nginx
+    group: nginx
+    mode: u=rwx,g=rwx,o=r
+  notify: reload nginx
+  when: site.value.ssl is defined and not site.value.ssl
+
+- name: Template nginx https site
+  become: true
+  ansible.builtin.template:
+    src: "site-ssl.conf.j2"
+    dest: "/etc/nginx/sites-enabled/{{ site.key }}"
+    owner: nginx
+    group: nginx
+    mode: u=rwx,g=rwx,o=r
+  notify: reload nginx
+  when: (site.value.ssl is defined and site.value.ssl) or site.value.ssl is not defined

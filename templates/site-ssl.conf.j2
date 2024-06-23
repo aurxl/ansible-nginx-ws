@@ -1,0 +1,122 @@
+{# setup namespace default_location to avoid duplicate lines #}
+{% set default_location = namespace(needed=False) %}
+
+# http server autoredirect to https
+server {
+    listen 80;
+    listen [::]:80;
+
+    server_name {{ site.key }} {{ site.value.alternative_names | map(attribute='name') | join(' ') }};
+
+    gzip on;
+
+    access_log /var/log/nginx/access.{{ site.key }}.log;
+    error_log /var/log/nginx/error.{{ site.key }}.log;
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+
+    {% if site.dehydrated_conf is defined and site.dehydrated_conf %}
+
+    location ^~ /.well-known/acme-challenge {
+        alias /var/www/dehydrated;
+    }
+
+    {% endif %}
+}
+
+# Settings for a TLS enabled server.
+server {
+    listen       443 ssl http2;
+    listen       [::]:443 ssl http2;
+    server_name  {{ site.key }} {{ ( site.value.alternative_names | selectattr('redirect_to_main', 'undefined') | map(attribute='name') ) | join(' ') }} {{ ( site.value.alternative_names | selectattr('redirect_to_main', 'undefined') | rejectattr('redirect_to_main', 'true') | map(attribute='name') ) | join(' ') }};
+
+    ssl_certificate "{{ nginx_ws.cert_dir }}/{{ site.key }}/fullchain.pem";
+    ssl_certificate_key "{{ nginx_ws.cert_dir }}/{{ site.key }}/privkey.pem";
+
+    ssl_session_cache shared:SSL:1m;
+    ssl_session_timeout  10m;
+    ssl_session_tickets off;
+    ssl_ciphers PROFILE=SYSTEM;
+    ssl_prefer_server_ciphers on;
+
+    gzip off;
+
+    access_log /var/log/nginx/access.{{ site.key }}.log;
+    error_log /var/log/nginx/error.{{ site.key }}.log;
+
+    root /var/www/{{ site.key }}/html;
+    index index.html index.htm;
+
+    error_page 404 /404.html;
+        location = /40x.html {
+    }
+
+    error_page 500 502 503 504 /50x.html;
+        location = /50x.html {
+    }
+
+    {% if site.value.redirect_in_server is defined and site.value.redirect_in_server %}
+    
+    return {{ site.value.redirect_in_server.code | default('307') }} {{ site.value.redirect_in_server.to }}{{ '$request_uri' if site.value.redirect_in_server.rewrite | default('false') }};
+    {% endif %}
+
+    {% if site.value.locations is defined %}
+    {% for location in site.value.locations %}
+    {% if location.name == '/' and location.redirect is undefined and location.content is undefined %}
+
+    {% set default_location.needed = true %}
+
+    {% else %}
+
+    location {{ location.modifier | default('') }} {{ location.name}}{{ '(.*)' if location.name == '/' and location.redirect.rewrite | default(false) }} {
+        {{ location.content | default('') }}
+        {% if location.redirect is defined %}return {{ location.redirect.code | default('307') }} {{ location.redirect.to }}{{ '$1$is_args$args' if location.name != '/' and location.rewrite | default(false) }}{{ '$request_uri' if location.name == '/' and location.rewrite | default(false) }};{% endif %}  
+
+    }
+
+    {% endif %}
+    {% endfor %}
+    {% else %}
+    
+    {% set default_location.needed = true %}
+    
+    {% endif %}
+
+    {% if default_location.needed %}
+    
+    location / {
+        try_files $uri $uri/ =404;
+    }
+    {% endif %}
+
+    location ~ /\.ht {
+        deny all;
+    }
+}
+
+{% if site.value.alternative_names %}
+{% for altname in site.value.alternative_names %}
+{% if altname.redirect_to_main is defined and altname.redirect_to_main %}
+server {
+    listen 443;
+    listen [::]443;
+
+    server_name {{ altname.name }};
+
+    ssl_certificate "{{ nginx_ws.cert_dir }}/{{ site.key }}/fullchain.pem";
+    ssl_certificate_key "{{ nginx_ws.cert_dir }}/{{ site.key }}/privkey.pem";
+
+    gzip off;
+
+    access_log /var/log/nginx/access.{{ site.key }}.log;
+    error_log /var/log/nginx/error.{{ site.key }}.log;
+
+    return {{ altname.code | default('307') }} https://{{ site.key }}$request_uri;
+
+}
+
+{% endif %}
+{% endfor %}
+{% endif %}

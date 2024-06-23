@@ -1,7 +1,7 @@
 ---
 - name: Combine defaults with vars
   ansible.builtin.set_fact:
-    nginx_wp: "{{ default_nginx_wp | ansible.builtin.combine(nginx_wp, recursive=true) }}"
+    nginx_ws: "{{ default_nginx_ws | ansible.builtin.combine(nginx_ws, recursive=true) }}"
 
 - name: Add nginx to pkgs
   ansible.builtin.set_fact:
@@ -17,12 +17,10 @@
 
 - name: include certs
   ansible.builtin.include_tasks: certs.yml
-  loop: "{{ sites | dict2items }}"
+  when: (site.value.ssl is defined and site.value.ssl) or site.value.ssl is not defined
+  loop: "{{ nginx_ws.sites | dict2items }}"
   loop_control:
     loop_var: site
 
 - name: include nginx
   ansible.builtin.include_tasks: nginx.yml
-  loop: "{{ sites | dict2items }}"
-  loop_control:
-    loop_var: site

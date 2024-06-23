@@ -1,1 +1,26 @@
 ---
+- name: Template nginx-conf
+  become: true
+  ansible.builtin.template:
+    src: "nginx.conf.j2"
+    dest: "/etc/nginx/nginx.conf"
+    owner: nginx
+    group: nginx
+    mode: "u=rw,g=rw,o=r"
+  notify: reload nginx
+
+- name: sites-enabled exist
+  become: true
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled
+    state: directory
+    recurse: true
+    mode: "u=rwx,g=rwx,o=rx"
+    owner: "nginx"
+    group: "nginx"
+
+- name: include http nginx-sites
+  ansible.builtin.include_tasks: nginx-sites.yml
+  loop: "{{ nginx_ws.sites | dict2items }}"
+  loop_control:
+    loop_var: site
