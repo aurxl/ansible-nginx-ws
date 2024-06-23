@@ -2,8 +2,8 @@
 galaxy_info:
   author: aurxl
   namespace: aurxl
-  role_name: nginx_wp
-  description: Nginx Websites
+  role_name: nginx_ws
+  description: Nginx Webserver
   license: "license (GPL-3.0)"
   min_ansible_version: "2.13"
   platforms:
@@ -18,4 +18,3 @@ galaxy_info:
     - nginx
     - web
     - webserver
-
