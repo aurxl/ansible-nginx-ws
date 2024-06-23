@@ -17,7 +17,7 @@ server {
         return 301 https://$host$request_uri;
     }
 
-    {% if site.dehydrated_conf is defined and site.dehydrated_conf %}
+    {% if site.value.dehydrated_conf is defined and site.value.dehydrated_conf %}
 
     location ^~ /.well-known/acme-challenge {
         alias /var/www/dehydrated;
