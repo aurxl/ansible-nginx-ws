@@ -28,4 +28,4 @@
 - name: Create self signed certs
   become: true
   ansible.builtin.command: "openssl req -x509 -nodes -days 1 -newkey rsa:2048 -keyout {{ nginx_ws.cert_dir }}/{{ item.key }}/privkey.pem -out {{ nginx_ws.cert_dir }}/{{ item.key }}/fullchain.pem -subj '/C=XX/ST=XX/L=XX/O=XX/OU=XX/CN={{ item.key }}' {{ subjectAltName_str | default('')}}"
-  when: nginx_rp.tmp_self_sign and not site_cert_dir.stat.exists
+  when: not site_cert_dir.stat.exists
