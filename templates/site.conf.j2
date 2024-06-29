@@ -26,7 +26,7 @@ server {
     return {{ site.value.redirect_in_server.code | default('307') }} {{ site.value.redirect_in_server.to }}{{ '$request_uri' if site.value.redirect_in_server.rewrite | default('false') }};
     {% endif %}
 
-    {% if site.value.location is defined %}
+    {% if site.value.locations is defined %}
     {% for location in site.value.locations %}
     {% if location.name == '/' and location.redirect is undefined and location.content is undefined %}
 
