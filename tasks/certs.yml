@@ -2,7 +2,7 @@
 - name: create dirs
   become: true
   ansible.builtin.file:
-    path: "{{ item.value.cert_dir }}/{{ item.key }}/"
+    path: "{{ nginx_ws.cert_dir }}/{{ item.key }}/"
     state: directory
     recurse: true
     mode: "u=rwx,g=rwx,o=rx"
@@ -12,7 +12,7 @@
 - name: "Check if {{site.key}} certs already present"
   become: true
   ansible.builtin.stat:
-    path: "{{ item.value.cert_dir }}/{{ item.key }}/privkey.pem"
+    path: "{{ nginx_ws.cert_dir }}/{{ item.key }}/privkey.pem"
   register: site_cert_dir
 
 - name: Set altnames
@@ -27,5 +27,5 @@
 
 - name: Create self signed certs
   become: true
-  ansible.builtin.command: "openssl req -x509 -nodes -days 1 -newkey rsa:2048 -keyout {{ item.value.cert_dir }}/{{ item.key }}/privkey.pem -out {{ item.value.cert_dir }}/{{ item.key }}/fullchain.pem -subj '/C=XX/ST=XX/L=XX/O=XX/OU=XX/CN={{ item.key }}' {{ subjectAltName_str | default('')}}"
+  ansible.builtin.command: "openssl req -x509 -nodes -days 1 -newkey rsa:2048 -keyout {{ nginx_ws.cert_dir }}/{{ item.key }}/privkey.pem -out {{ nginx_ws.cert_dir }}/{{ item.key }}/fullchain.pem -subj '/C=XX/ST=XX/L=XX/O=XX/OU=XX/CN={{ item.key }}' {{ subjectAltName_str | default('')}}"
   when: nginx_rp.tmp_self_sign and not site_cert_dir.stat.exists
