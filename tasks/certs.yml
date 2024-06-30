@@ -9,7 +9,7 @@
     owner: "nginx"
     group: "nginx"
 
-- name: "Check if {{site.key}} certs already present"
+- name: "Check if {{item.key}} certs already present"
   become: true
   ansible.builtin.stat:
     path: "{{ nginx_ws.cert_dir }}/{{ item.key }}/privkey.pem"

@@ -17,7 +17,7 @@
 
 - name: include certs
   ansible.builtin.include_tasks: certs.yml
-  when: (site.value.ssl is defined and site.value.ssl) or site.value.ssl is not defined
+  when: (item.value.ssl is defined and item.value.ssl) or item.value.ssl is not defined
   loop: "{{ nginx_ws.sites | dict2items }}"
 
 - name: include nginx
