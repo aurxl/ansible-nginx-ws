@@ -18,7 +18,6 @@
     group: "{{ nginx_owner }}"
     mode: "u=rw,g=rw,o=r"
   notify: reload nginx
-  when: ansible_facts["os_family"] == "RedHat"
 
 - name: Template http header conf
   become: true
@@ -29,7 +28,6 @@
     group: "{{ nginx_owner }}"
     mode: "u=rw,g=rw,o=r"
   notify: reload nginx
-  when: ansible_facts["os_family"] == "RedHat"
 
 - name: sites-enabled exist
   become: true
@@ -40,7 +38,6 @@
     mode: "u=rwx,g=rwx,o=rx"
     owner: "{{ nginx_owner }}"
     group: "{{ nginx_owner }}"
-  when: ansible_facts["os_family"] == "RedHat"
 
 - name: include http nginx-sites
   ansible.builtin.include_tasks: nginx-sites.yml
