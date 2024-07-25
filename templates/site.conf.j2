@@ -10,6 +10,8 @@ server {
     access_log /var/log/nginx/access.{{ site.key }}.log;
     error_log /var/log/nginx/error.{{ site.key }}.log;
 
+    include /etc/nginx/conf.d/*.conf;
+
     root /var/www/{{ site.key }}/html;
     index index.html index.htm;
 
@@ -71,6 +73,8 @@ server {
 
     access_log /var/log/nginx/access.{{ site.key }}.log;
     error_log /var/log/nginx/error.{{ site.key }}.log;
+
+    include /etc/nginx/conf.d/*.conf;
 
     return {{ altname.code | default('307') }} http://{{ site.key }}$request_uri;
 

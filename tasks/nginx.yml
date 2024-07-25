@@ -20,6 +20,17 @@
   notify: reload nginx
   when: ansible_facts["os_family"] == "RedHat"
 
+- name: Template http header conf
+  become: true
+  ansible.builtin.template:
+    src: "header.conf.j2"
+    dest: "/etc/nginx/conf.d/header.conf"
+    owner: "{{ nginx_owner }}"
+    group: "{{ nginx_owner }}"
+    mode: "u=rw,g=rw,o=r"
+  notify: reload nginx
+  when: ansible_facts["os_family"] == "RedHat"
+
 - name: sites-enabled exist
   become: true
   ansible.builtin.file:

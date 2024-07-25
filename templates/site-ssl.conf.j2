@@ -13,6 +13,8 @@ server {
     access_log /var/log/nginx/access.{{ site.key }}.log;
     error_log /var/log/nginx/error.{{ site.key }}.log;
 
+    include /etc/nginx/conf.d/*.conf;
+
     location / {
         return 301 https://$host$request_uri;
     }
@@ -45,6 +47,8 @@ server {
 
     access_log /var/log/nginx/access.{{ site.key }}.log;
     error_log /var/log/nginx/error.{{ site.key }}.log;
+
+    include /etc/nginx/conf.d/*.conf;
 
     root /var/www/{{ site.key }}/html;
     index index.html index.htm;
