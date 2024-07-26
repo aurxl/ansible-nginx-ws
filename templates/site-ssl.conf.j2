@@ -13,7 +13,9 @@ server {
     access_log /var/log/nginx/access.{{ site.key }}.log;
     error_log /var/log/nginx/error.{{ site.key }}.log;
 
-    include /etc/nginx/conf.d/*.conf;
+    {% if site.value.enable_secure_header | default(true)%}
+    include /etc/nginx/conf.d/header.conf;
+    {% endif %}
 
     location / {
         return 301 https://$host$request_uri;
@@ -48,7 +50,9 @@ server {
     access_log /var/log/nginx/access.{{ site.key }}.log;
     error_log /var/log/nginx/error.{{ site.key }}.log;
 
-    include /etc/nginx/conf.d/*.conf;
+    {% if site.value.enable_secure_header | default(true)%}
+    include /etc/nginx/conf.d/header.conf;
+    {% endif %}
 
     root /var/www/{{ site.key }}/html;
     index index.html index.htm;
